@@ -76,6 +76,7 @@ def assign_number_to_paper_id():
     return numbering, reverse
 
 def create_surprise_paper_paper_data():
+    # Takes 5 minutes 2 seconds on crunchy5
     mydict = create_paper_paper_dict()
 
     itemList, userList, ratingList = [], [], []
@@ -83,7 +84,7 @@ def create_surprise_paper_paper_data():
         for paper in value:
             itemList.append(paper)
             userList.append(key)
-            ratingList.append(1) # I only add 1...
+            ratingList.append(1) # "rating" is always 1 for each citation
 
     ratings_dict = {'itemID': itemList, 'userID': userList, 'rating': ratingList}
     df = pd.DataFrame(ratings_dict)
