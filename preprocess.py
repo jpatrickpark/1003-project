@@ -6,6 +6,7 @@ from surprise import NormalPredictor
 from surprise import Dataset
 from surprise import Reader
 from surprise.model_selection import cross_validate
+import random
 
 debug = False
 
@@ -75,12 +76,9 @@ def assign_number_to_paper_id():
 
     return numbering, reverse
 
-def create_surprise_paper_paper_data():
-    # Takes 5 minutes 2 seconds on crunchy5
-    mydict = create_paper_paper_dict()
-
+def create_surprise_paper_paper_data(paper_paper_dict):
     itemList, userList, ratingList = [], [], []
-    for key, value in mydict.items():
+    for key, value in paper_paper_dict.items():
         for paper in value:
             itemList.append(paper)
             userList.append(key)
@@ -89,11 +87,23 @@ def create_surprise_paper_paper_data():
     ratings_dict = {'itemID': itemList, 'userID': userList, 'rating': ratingList}
     df = pd.DataFrame(ratings_dict)
 
-    reader = Reader(rating_scale=(1,1)) # 1 is the only rating. Everything else is missing data.
+    reader = Reader(rating_scale=(0,1)) # JP: rating scale is 0 (not cited) and 1 (cited)
 
     data = Dataset.load_from_df(df[['userID', 'itemID', 'rating']], reader)
 
     return data
+
+def create_random_subset_paper_paper_data(size=100000):
+    #Build a random subset of dictionary, where we only retain references to themselves
+    mydict = create_paper_paper_dict()
+    if size > len(mydict):
+        size = len(mydict)
+    random_dict = {k: mydict[k] for k in random.sample(mydict.keys(),size)}
+    for each in random_dict:
+        for ref in mydict[each]:
+            if ref not in random_dict:
+                random_dict[each].remove(ref)
+    return random_dict
 
 if __name__ == "__main__":
     create_surprise_paper_paper_data()
