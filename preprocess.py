@@ -98,7 +98,7 @@ def create_random_subset_paper_paper_data(size=100000):
     mydict = create_paper_paper_dict()
     if size > len(mydict):
         size = len(mydict)
-    random_dict = {k: mydict[k] for k in random.sample(mydict.keys(),size)}
+    random_dict = {k: list(mydict[k]) for k in random.sample(mydict.keys(),size)}
     for each in random_dict:
         for ref in mydict[each]:
             if ref not in random_dict:
