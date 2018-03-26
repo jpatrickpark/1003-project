@@ -8,7 +8,7 @@ from surprise import Reader
 from surprise.model_selection import cross_validate
 import random
 
-debug = False
+debug = True
 
 if debug:
     DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
