@@ -8,19 +8,17 @@ from surprise import Reader
 from surprise.model_selection import cross_validate
 import random
 
-debug = True
 
-if debug:
-    DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
-else:
-    DBLP_LIST = [ 'dblp-ref/dblp-ref-0.json',
-    'dblp-ref/dblp-ref-1.json',
-    'dblp-ref/dblp-ref-2.json',
-    'dblp-ref/dblp-ref-3.json' ]
-
-
-def create_paper_paper_dict():
+def create_paper_paper_dict(debug=False):
     # It takes about 6 minutes 20 seconds on crunchy5
+    if debug:
+        DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
+    else:
+        DBLP_LIST = [ 'dblp-ref/dblp-ref-0.json',
+        'dblp-ref/dblp-ref-1.json',
+        'dblp-ref/dblp-ref-2.json',
+        'dblp-ref/dblp-ref-3.json' ]
+
     result = dict()
 
     for data in DBLP_LIST:
@@ -93,11 +91,12 @@ def create_surprise_paper_paper_data(paper_paper_dict):
 
     return data
 
-def create_random_subset_paper_paper_data(size=100000):
+def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False):
     #Build a random subset of dictionary, where we only retain references to themselves
-    mydict = create_paper_paper_dict()
+    mydict = create_paper_paper_dict(debug=debug)
     if size > len(mydict):
         size = len(mydict)
+    random.seed(seed)
     random_dict = {k: list(mydict[k]) for k in random.sample(mydict.keys(),size)}
     for each in random_dict:
         for ref in mydict[each]:
