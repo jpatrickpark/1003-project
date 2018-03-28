@@ -74,13 +74,25 @@ def assign_number_to_paper_id():
 
     return numbering, reverse
 
-def create_surprise_paper_paper_data(paper_paper_dict):
+def create_surprise_paper_paper_data(paper_paper_dict, add_random_0_entries=False):
     itemList, userList, ratingList = [], [], []
+
+    all_keys_set = set(paper_paper_dict.keys())
     for key, value in paper_paper_dict.items():
         for paper in value:
             itemList.append(paper)
             userList.append(key)
             ratingList.append(1) # "rating" is always 1 for each citation
+
+        # JP 03/28/18 First attempt on trying to add some (not all) entries with 0 ratings
+        if add_random_0_entries and len(value)!=0:
+            # create candidate set which does not include references
+            zero_rating_set_for_key = all_keys_set - set(value)
+            # add randomly selected 0 entry, the same number as 1 entries
+            for paper in random.sample(zero_rating_set_for_key, len(value)):
+                itemList.append(paper)
+                userList.append(key)
+                ratingList.append(0) # we add 0 entries (no citation) with certain probability
 
     ratings_dict = {'itemID': itemList, 'userID': userList, 'rating': ratingList}
     df = pd.DataFrame(ratings_dict)
@@ -104,5 +116,6 @@ def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False):
                 random_dict[each].remove(ref)
     return random_dict
 
+
 if __name__ == "__main__":
-    create_surprise_paper_paper_data()
+    create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
