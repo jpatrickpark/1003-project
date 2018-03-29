@@ -8,6 +8,44 @@ from surprise import Reader
 from surprise.model_selection import cross_validate
 import random
 
+from collections import defaultdict
+from functools import partial
+from itertools import combinations
+
+def create_co_occurrence_matrix(paper_paper_dict):
+    result = defaultdict(partial(defaultdict, int))
+    for key, value in paper_paper_dict.items():
+        for first, second in combinations(value, 2):
+            result[first][second] += 1
+            result[second][first] += 1
+    return result
+
+def create_user_paper_dict(debug=False):
+    if debug:
+        DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
+    else:
+        DBLP_LIST = [ 'dblp-ref/dblp-ref-0.json',
+        'dblp-ref/dblp-ref-1.json',
+        'dblp-ref/dblp-ref-2.json',
+        'dblp-ref/dblp-ref-3.json' ]
+
+    result = defaultdict(partial(defaultdict, int))
+
+    for data in DBLP_LIST:
+        with open(data) as f:
+            line = f.readline()
+            while line:
+                data = json.loads(line)
+                
+                for author in data["authors"]: # assuming this won't error
+                    try:
+                        for paper in data ["references"]:
+                            result[author][paper] += 1
+                    except KeyError:
+                        result[author] # this line creates an entry in result
+                line = f.readline()
+
+    return result
 
 def create_paper_paper_dict(debug=False):
     # It takes about 6 minutes 20 seconds on crunchy5
@@ -74,13 +112,25 @@ def assign_number_to_paper_id():
 
     return numbering, reverse
 
-def create_surprise_paper_paper_data(paper_paper_dict):
+def create_surprise_paper_paper_data(paper_paper_dict, add_random_0_entries=False):
     itemList, userList, ratingList = [], [], []
+
+    all_keys_set = set(paper_paper_dict.keys())
     for key, value in paper_paper_dict.items():
         for paper in value:
             itemList.append(paper)
             userList.append(key)
             ratingList.append(1) # "rating" is always 1 for each citation
+
+        # JP 03/28/18 First attempt on trying to add some (not all) entries with 0 ratings
+        if add_random_0_entries and len(value)!=0:
+            # create candidate set which does not include references
+            zero_rating_set_for_key = all_keys_set - set(value)
+            # add randomly selected 0 entry, the same number as 1 entries
+            for paper in random.sample(zero_rating_set_for_key, len(value)):
+                itemList.append(paper)
+                userList.append(key)
+                ratingList.append(0) # we add 0 entries (no citation) with certain probability
 
     ratings_dict = {'itemID': itemList, 'userID': userList, 'rating': ratingList}
     df = pd.DataFrame(ratings_dict)
@@ -104,5 +154,6 @@ def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False):
                 random_dict[each].remove(ref)
     return random_dict
 
+
 if __name__ == "__main__":
-    create_surprise_paper_paper_data()
+    create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
