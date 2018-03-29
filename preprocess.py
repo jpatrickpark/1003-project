@@ -12,7 +12,7 @@ from collections import defaultdict
 from functools import partial
 from itertools import combinations
 
-def create_co_occurance_matrix(paper_paper_dict):
+def create_co_occurrence_matrix(paper_paper_dict):
     result = defaultdict(partial(defaultdict, int))
     for key, value in paper_paper_dict.items():
         for first, second in combinations(value, 2):
