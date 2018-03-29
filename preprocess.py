@@ -8,6 +8,44 @@ from surprise import Reader
 from surprise.model_selection import cross_validate
 import random
 
+from collections import defaultdict
+from functools import partial
+from itertools import combinations
+
+def create_co_occurrence_matrix(paper_paper_dict):
+    result = defaultdict(partial(defaultdict, int))
+    for key, value in paper_paper_dict.items():
+        for first, second in combinations(value, 2):
+            result[first][second] += 1
+            result[second][first] += 1
+    return result
+
+def create_user_paper_dict(debug=False):
+    if debug:
+        DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
+    else:
+        DBLP_LIST = [ 'dblp-ref/dblp-ref-0.json',
+        'dblp-ref/dblp-ref-1.json',
+        'dblp-ref/dblp-ref-2.json',
+        'dblp-ref/dblp-ref-3.json' ]
+
+    result = defaultdict(partial(defaultdict, int))
+
+    for data in DBLP_LIST:
+        with open(data) as f:
+            line = f.readline()
+            while line:
+                data = json.loads(line)
+                
+                for author in data["authors"]: # assuming this won't error
+                    try:
+                        for paper in data ["references"]:
+                            result[author][paper] += 1
+                    except KeyError:
+                        result[author] # this line creates an entry in result
+                line = f.readline()
+
+    return result
 
 def create_paper_paper_dict(debug=False):
     # It takes about 6 minutes 20 seconds on crunchy5
