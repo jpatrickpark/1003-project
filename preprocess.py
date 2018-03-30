@@ -39,7 +39,7 @@ def create_user_paper_dict(debug=False):
             line = f.readline()
             while line:
                 data = json.loads(line)
-                
+
                 for author in data["authors"]: # assuming this won't error
                     try:
                         for paper in data ["references"]:
@@ -146,6 +146,62 @@ def create_surprise_paper_paper_data(paper_paper_dict, add_random_0_entries=Fals
     data = Dataset.load_from_df(df[['userID', 'itemID', 'rating']], reader)
 
     return data
+
+def normalize_user_paper_data(user_paper_dict, rating_scale):
+    min_rating = rating_scale[0]
+    max_rating = rating_scale[1]
+
+    # initialize max_rating for each paper
+    papers_max_ratings = {}
+    for papers in user_paper_dict.values():
+        for paper in papers.keys():
+        papers_max_ratings[paper] = 0
+
+    # find max_rating for each paper
+    all_authors_set = set(user_paper_dict.keys())
+    for author in all_authors_set:
+        all_papers_set = set(user_paper_dict[author].keys())
+        for paper in all_papers_set:
+            if user_paper_dict[author][paper] > papers_max_ratings[paper]:
+                papers_max_ratings[paper] = user_paper_dict[author][paper]
+
+    for author in all_authors_set:
+        all_papers_set = set(user_paper_dict[author].keys())
+        for paper in all_papers_set:
+            y = papers_max_ratings[paper]
+            z = user_paper_dict[author][paper]
+            value = (y + max_rating*z - (max_rating+z))/(y-1)
+            user_paper_dict[author][paper] = value
+
+    return user_paper_dict
+
+
+
+
+
+
+
+
+
+
+def create_surprise_user_paper_data(user_paper_dict, rating_scale):
+    itemList, userList, ratingList = [], [], []
+
+    all_authors_set = set(user_paper_dict.keys())
+    for author in all_authors_set:
+        all_papers_set = set(user_paper_dict[author].keys())
+        for paper in all_papers_set:
+            itemList.append(paper)
+            userList.append(author)
+            ratingList.append(user_paper_dict[author][paper])
+
+    ratings_dict = {'itemID': itemList, 'userID': userList, 'rating': ratingList}
+    df = pd.DataFrame(ratings_dict)
+    reader = Reader(rating_scale=rating_scale)
+    data = Dataset.load_from_df(df[['userID', 'itemID', 'rating']], reader)
+
+    return data
+
 
 def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False):
     #Build a random subset of dictionary, where we only retain references to themselves
