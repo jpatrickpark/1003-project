@@ -169,19 +169,14 @@ def normalize_user_paper_data(user_paper_dict, rating_scale):
         all_papers_set = set(user_paper_dict[author].keys())
         for paper in all_papers_set:
             y = papers_max_ratings[paper]
-            z = user_paper_dict[author][paper]
-            value = (y + max_rating*z - (max_rating+z))/(y-1)
-            user_paper_dict[author][paper] = value
+            if y == 1:
+                continue
+            else:
+                z = user_paper_dict[author][paper]
+                value = (y + max_rating*z - (max_rating+z))/(y-1)
+                user_paper_dict[author][paper] = value
 
     return user_paper_dict
-
-
-
-
-
-
-
-
 
 
 def create_surprise_user_paper_data(user_paper_dict, rating_scale):
