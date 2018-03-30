@@ -18,6 +18,9 @@ def create_co_occurrence_matrix(paper_paper_dict):
         for first, second in combinations(value, 2):
             result[first][second] += 1
             result[second][first] += 1
+    result.default_factory = None
+    for key in result:
+        result[key].default_factory = None
     return result
 
 def create_user_paper_dict(debug=False):
@@ -44,6 +47,9 @@ def create_user_paper_dict(debug=False):
                     except KeyError:
                         result[author] # this line creates an entry in result
                 line = f.readline()
+    result.default_factory = None
+    for key in result:
+        result[key].default_factory = None
 
     return result
 
