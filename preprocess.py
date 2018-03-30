@@ -155,7 +155,7 @@ def normalize_user_paper_data(user_paper_dict, rating_scale):
     papers_max_ratings = {}
     for papers in user_paper_dict.values():
         for paper in papers.keys():
-        papers_max_ratings[paper] = 0
+            papers_max_ratings[paper] = 0
 
     # find max_rating for each paper
     all_authors_set = set(user_paper_dict.keys())
