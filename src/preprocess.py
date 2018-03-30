@@ -25,12 +25,12 @@ def create_co_occurrence_matrix(paper_paper_dict):
 
 def create_user_paper_dict(debug=False):
     if debug:
-        DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
+        DBLP_LIST = [ '../dblp-ref/dblp-ref-3.json' ]
     else:
-        DBLP_LIST = [ 'dblp-ref/dblp-ref-0.json',
-        'dblp-ref/dblp-ref-1.json',
-        'dblp-ref/dblp-ref-2.json',
-        'dblp-ref/dblp-ref-3.json' ]
+        DBLP_LIST = [ '../dblp-ref/dblp-ref-0.json',
+        '../dblp-ref/dblp-ref-1.json',
+        '../dblp-ref/dblp-ref-2.json',
+        '../dblp-ref/dblp-ref-3.json' ]
 
     result = defaultdict(partial(defaultdict, int))
 
@@ -56,12 +56,12 @@ def create_user_paper_dict(debug=False):
 def create_paper_paper_dict(debug=False):
     # It takes about 6 minutes 20 seconds on crunchy5
     if debug:
-        DBLP_LIST = [ 'dblp-ref/dblp-ref-3.json' ]
+        DBLP_LIST = [ '../dblp-ref/dblp-ref-3.json' ]
     else:
-        DBLP_LIST = [ 'dblp-ref/dblp-ref-0.json',
-        'dblp-ref/dblp-ref-1.json',
-        'dblp-ref/dblp-ref-2.json',
-        'dblp-ref/dblp-ref-3.json' ]
+        DBLP_LIST = [ '../dblp-ref/dblp-ref-0.json',
+        '../dblp-ref/dblp-ref-1.json',
+        '../dblp-ref/dblp-ref-2.json',
+        '../dblp-ref/dblp-ref-3.json' ]
 
     result = dict()
 
@@ -91,13 +91,13 @@ def save_paper_paper_dict():
     # Loading this pickle file actually takes much longer than creating the dictionary!
     # It took me 20 minutes and it still did not finish.
     # I recommend just creating the dict without saving it as pickle.
-    save_pickle('dblp-ref/paper_paper_dict.pickle', create_paper_paper_dict())
+    save_pickle('../dblp-ref/paper_paper_dict.pickle', create_paper_paper_dict())
 
 def save_numbering_and_reverse():
     # TODO: add logic so that only creates these files when they don't exist
     numbering, reverse = assign_number_to_paper_id()
-    save_pickle('dblp-ref/numbering.pickle', numbering)
-    save_pickle('dblp-ref/reverse.pickle', reverse)
+    save_pickle('../dblp-ref/numbering.pickle', numbering)
+    save_pickle('../dblp-ref/reverse.pickle', reverse)
 
 def assign_number_to_paper_id():
     # When using surprise, it seems like we don't need this method.
