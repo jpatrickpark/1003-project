@@ -211,6 +211,18 @@ def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False,da
                 random_dict[each].remove(ref)
     return random_dict
 
+def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, datadir='../dblp-ref'):
+    #Build a random subset of dictionary, where we only retain references to themselves
+    mydict = create_user_paper_dict(debug=debug,datadir=datadir)
+    if size > len(mydict):
+        size = len(mydict)
+    random.seed(seed)
+    random_dict = {k: list(mydict[k]) for k in random.sample(mydict.keys(),size)}
+    for each in random_dict:
+        for ref in mydict[each]:
+            if ref not in random_dict:
+                random_dict[each].remove(ref)
+    return random_dict
 
 if __name__ == "__main__":
     create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
