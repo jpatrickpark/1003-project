@@ -23,35 +23,17 @@ def create_co_occurrence_matrix(paper_paper_dict):
         result[key].default_factory = None
     return result
 
-def create_user_paper_dict(debug=False, datadir='../dblp-ref'):
-    if debug:
-        DBLP_LIST = [ datadir+'/dblp-ref-3.json' ]
-    else:
-        DBLP_LIST = [ datadir+'/dblp-ref-0.json',
-        datadir+'/dblp-ref-1.json',
-        datadir+'/dblp-ref-2.json',
-        datadir+'/dblp-ref-3.json' ]
 
-    result = defaultdict(partial(defaultdict, int))
 
-    for data in DBLP_LIST:
-        with open(data) as f:
-            line = f.readline()
-            while line:
-                data = json.loads(line)
 
-                for author in data["authors"]: # assuming this won't error
-                    try:
-                        for paper in data ["references"]:
-                            result[author][paper] += 1
-                    except KeyError:
-                        result[author] # this line creates an entry in result
-                line = f.readline()
-    result.default_factory = None
-    for key in result:
-        result[key].default_factory = None
+def delete_those_citing_none(data):
+    freesouls = set()
+    for user in data:
+        if len(data[user])==0:
+            freesouls.add(user)
+    for user in freesouls:
+        del data[user]
 
-    return result
 
 def create_paper_paper_dict(debug=False, datadir='../dblp-ref'):
     # It takes about 6 minutes 20 seconds on crunchy5
@@ -76,7 +58,44 @@ def create_paper_paper_dict(debug=False, datadir='../dblp-ref'):
                     result[data["id"]] = []
                 line = f.readline()
 
+    delete_those_citing_none(result)
     return result
+
+
+def create_user_paper_dict(debug=False, datadir='../dblp-ref'):
+    if debug:
+        DBLP_LIST = [ datadir+'/dblp-ref-3.json' ]
+    else:
+        DBLP_LIST = [ datadir+'/dblp-ref-0.json',
+        datadir+'/dblp-ref-1.json',
+        datadir+'/dblp-ref-2.json',
+        datadir+'/dblp-ref-3.json' ]
+
+    result = defaultdict(partial(defaultdict, int))
+
+    for data in DBLP_LIST:
+        with open(data) as f:
+            line = f.readline()
+            while line:
+                data = json.loads(line)
+                try:  # it happens that some paper does not have authors entry.
+                    for author in data["authors"]: # assuming this won't error
+                        try:
+                            for paper in data["references"]:
+                                result[author][paper] += 1
+                        except KeyError:
+                            result[author] # this line creates an entry in result
+                except KeyError:
+                    # If no authors entry, skip this line.
+                    pass
+                line = f.readline()
+    result.default_factory = None
+    for key in result:
+        result[key].default_factory = None
+
+    delete_those_citing_none(result)
+    return result
+
 
 def save_pickle(save_filename, obj):
     with open(save_filename, 'wb') as handle:
@@ -211,6 +230,80 @@ def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False,da
                 random_dict[each].remove(ref)
     return random_dict
 
+def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, datadir='../dblp-ref'):
+    #Build a random subset of dictionary, where we only retain references to themselves
+    mydict = create_user_paper_dict(debug=debug,datadir=datadir)
+    if size > len(mydict):
+        size = len(mydict)
+    random.seed(seed)
+    random_dict = {k: mydict[k] for k in random.sample(mydict.keys(),size)}
+
+    # DYK: I believe for user_paper_dict, we don't need to delete these.
+    # for user in random_dict:
+    #     for paper in mydict[user]:
+    #         if ref not in random_dict:
+    #             random_dict[each].remove(ref)
+    return random_dict
+
+
+
+
+# def paper_paper_train_test_split(paper_paper_dict):
+#
+#
+#
+#
+# def user_paper_train_test_split(user_paper_dict, test_size = .25):
+#     # STOPPED WORKING ON THESE CODES DUE TO SPARSITY OF THE DATA
+
+#     all_nonzero_entries = set()
+#     users_to_be_prevented = set()
+#     papers_to_be_prevented = set()
+#
+#     for user in user_paper_dict:
+#         if len(user_paper_dict[user]) < 2:
+#             users_to_be_prevented.add(user)
+#         for paper in user_paper_dict[user]:
+#             all_nonzero_entries.add((user,paper,user_paper_dict[user][paper]))
+#             cited_by_how_many = 0
+#             for userrr in user_paper_dict:
+#                 if paper in user_paper_dict[userrr]:
+#                     cited_by_how_many += 1
+#             if cited_by_how_many < 2:
+#                 papers_to_be_prevented.add(paper)
+#
+#     entries_to_be_prevented = set()
+#     for entry in all_nonzero_entries:
+#         if entry[0] in users_to_be_prevented or entry[1] in papers_to_be_prevented:
+#             entries_to_be_prevented.add(entry)
+#
+#     splittables = all_nonzero_entries - entries_to_be_prevented
+#     L = len(all_nonzero_entries)
+#     M = len(entries_to_be_prevented)
+#     x = M/L
+#
+#     test = random.sample(splittables, )
+#
+#
+#     """
+#     train = .75L
+#     test = .25L
+#
+#     prevent = M = xL
+#     train + M = .75L
+#     train = (.75-x)L
+#
+#
+#
+#     """
+#
+#
+#
+#     trainset={}
+#     testset={}
+#
+#
+#     return trainset, testset
 
 if __name__ == "__main__":
     create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
