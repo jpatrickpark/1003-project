@@ -78,7 +78,7 @@ def create_user_paper_dict(debug=False, datadir='../dblp-ref'):
             line = f.readline()
             while line:
                 data = json.loads(line)
-                try:  # it happens that some paper does not have authors entry.
+                try:  # it happens that some paper does not have "authors" entry.
                     for author in data["authors"]: # assuming this won't error
                         try:
                             for paper in data["references"]:
@@ -199,6 +199,7 @@ def normalize_user_paper_data(user_paper_dict, rating_scale):
 
 
 def create_surprise_user_paper_data(user_paper_dict, rating_scale):
+    user_paper_dict = normalize_user_paper_data(user_paper_dict,rating_scale)
     itemList, userList, ratingList = [], [], []
 
     all_authors_set = set(user_paper_dict.keys())
