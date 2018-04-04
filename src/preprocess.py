@@ -23,6 +23,33 @@ def create_co_occurrence_matrix(paper_paper_dict):
         result[key].default_factory = None
     return result
 
+
+def create_paper_paper_dict(debug=False, datadir='../dblp-ref'):
+    # It takes about 6 minutes 20 seconds on crunchy5
+    if debug:
+        DBLP_LIST = [ datadir+'/dblp-ref-3.json' ]
+    else:
+        DBLP_LIST = [ datadir+'/dblp-ref-0.json',
+        datadir+'/dblp-ref-1.json',
+        datadir+'/dblp-ref-2.json',
+        datadir+'/dblp-ref-3.json' ]
+
+    result = dict()
+
+    for data in DBLP_LIST:
+        with open(data) as f:
+            line = f.readline()
+            while line:
+                data = json.loads(line)
+                try:
+                    result[data["id"]] = data["references"]
+                except KeyError:
+                    result[data["id"]] = []
+                line = f.readline()
+
+    return result
+
+
 def create_user_paper_dict(debug=False, datadir='../dblp-ref'):
     if debug:
         DBLP_LIST = [ datadir+'/dblp-ref-3.json' ]
@@ -53,30 +80,6 @@ def create_user_paper_dict(debug=False, datadir='../dblp-ref'):
 
     return result
 
-def create_paper_paper_dict(debug=False, datadir='../dblp-ref'):
-    # It takes about 6 minutes 20 seconds on crunchy5
-    if debug:
-        DBLP_LIST = [ datadir+'/dblp-ref-3.json' ]
-    else:
-        DBLP_LIST = [ datadir+'/dblp-ref-0.json',
-        datadir+'/dblp-ref-1.json',
-        datadir+'/dblp-ref-2.json',
-        datadir+'/dblp-ref-3.json' ]
-
-    result = dict()
-
-    for data in DBLP_LIST:
-        with open(data) as f:
-            line = f.readline()
-            while line:
-                data = json.loads(line)
-                try:
-                    result[data["id"]] = data["references"]
-                except KeyError:
-                    result[data["id"]] = []
-                line = f.readline()
-
-    return result
 
 def save_pickle(save_filename, obj):
     with open(save_filename, 'wb') as handle:
@@ -217,12 +220,14 @@ def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, data
     if size > len(mydict):
         size = len(mydict)
     random.seed(seed)
-    random_dict = {k: list(mydict[k]) for k in random.sample(mydict.keys(),size)}
-    for each in random_dict:
-        for ref in mydict[each]:
-            if ref not in random_dict:
-                random_dict[each].remove(ref)
-    return random_dict
+    random_dict = {k: mydict[k] for k in random.sample(mydict.keys(),size)}
+
+    # DYK: I believe for user_paper_dict, we don't need to delete these.
+    # for user in random_dict:
+    #     for paper in mydict[user]:
+    #         if ref not in random_dict:
+    #             random_dict[each].remove(ref)
+    # return random_dict
 
 if __name__ == "__main__":
     create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
