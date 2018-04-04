@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 ###http://surprise.readthedocs.io/en/stable/FAQ.html#how-to-get-the-top-n-recommendations-for-each-user
 def get_top_n(predictions, n=10):
     '''Return the top-N recommendation for each user from a set of predictions.
@@ -24,6 +26,30 @@ def get_top_n(predictions, n=10):
         top_n[uid] = user_ratings[:n]
 
     return top_n
+
+def get_items_greater_threshold(predictions, threshold=0):
+    '''Return the recommendation for each user from a set of predictions.
+
+    Args:
+        predictions(list of Prediction objects): The list of predictions, as
+            returned by the test method of an algorithm.
+        threshold: recommend the item if est > threshold
+
+    Returns:
+    A dict where keys are user (raw) ids and values are lists of tuples:
+        [(raw item id, rating estimation), ...] of size n.
+    '''
+
+    # First map the predictions to each user.
+    recommendationlist = defaultdict(list)
+    
+    for uid, iid, true_r, est, _ in predictions:
+        if est >= threshold:
+            recommendationlist[uid].append((iid, est))
+        else:
+            # print('est < threshold')
+            pass
+    return recommendationlist
 
 def precision_recall_at_k(predictions, k=10, threshold=3.5):
     '''Return precision and recall at k metrics for each user.'''
