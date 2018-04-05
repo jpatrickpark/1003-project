@@ -1,6 +1,7 @@
 import json
 import pickle
 
+import numpy as np
 import pandas as pd
 from surprise import NormalPredictor
 from surprise import Dataset
@@ -285,8 +286,8 @@ def paper_paper_train_test_split(user_paper_dict, test_size = .11):
 
     testset = defaultdict(list)
     for user in splittable_dict:        ######## Find this value!!!!
-        if len(splittable_dict[user]) > 2:  # data <= 2 are approx. 4%
-            rand_sample = random.sample(splittable_dict[user],round(x*len(splittable_dict[user])))
+        if len(splittable_dict[user]) > 1:  # data <= 2 are approx. 4%
+            rand_sample = random.sample(splittable_dict[user],np.ceil(x*len(splittable_dict[user])))
             for paper in rand_sample:
                 testset[user].append(paper)
     testset.default_factory = None
@@ -341,8 +342,8 @@ def user_paper_train_test_split(user_paper_dict, test_size = .25):
 
     testset = defaultdict(partial(defaultdict, int))
     for user in splittable_dict:
-        if len(splittable_dict[user]) > 5:  # data <= 5 are approx. 2%
-            rand_sample = random.sample(splittable_dict[user].keys(),round(x*len(splittable_dict[user])))
+        if len(splittable_dict[user]) > 4:  # data <= 5 are approx. 2%
+            rand_sample = random.sample(splittable_dict[user].keys(),np.ceil(x*len(splittable_dict[user])))
             for paper in rand_sample:
                 testset[user][paper] = splittable_dict[user][paper]
     testset.default_factory = None
