@@ -199,7 +199,7 @@ def normalize_user_paper_data(user_paper_dict, rating_scale):
 
 
 def create_surprise_user_paper_data(user_paper_dict, rating_scale):
-    user_paper_dict = normalize_user_paper_data(user_paper_dict,rating_scale)
+
     itemList, userList, ratingList = [], [], []
 
     all_authors_set = set(user_paper_dict.keys())
@@ -249,62 +249,123 @@ def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, data
 
 
 
-# def paper_paper_train_test_split(paper_paper_dict):
-#
-#
-#
-#
-# def user_paper_train_test_split(user_paper_dict, test_size = .25):
-#     # STOPPED WORKING ON THESE CODES DUE TO SPARSITY OF THE DATA
+def paper_paper_train_test_split(user_paper_dict, test_size = .11):
 
-#     all_nonzero_entries = set()
-#     users_to_be_prevented = set()
-#     papers_to_be_prevented = set()
-#
-#     for user in user_paper_dict:
-#         if len(user_paper_dict[user]) < 2:
-#             users_to_be_prevented.add(user)
-#         for paper in user_paper_dict[user]:
-#             all_nonzero_entries.add((user,paper,user_paper_dict[user][paper]))
-#             cited_by_how_many = 0
-#             for userrr in user_paper_dict:
-#                 if paper in user_paper_dict[userrr]:
-#                     cited_by_how_many += 1
-#             if cited_by_how_many < 2:
-#                 papers_to_be_prevented.add(paper)
-#
-#     entries_to_be_prevented = set()
-#     for entry in all_nonzero_entries:
-#         if entry[0] in users_to_be_prevented or entry[1] in papers_to_be_prevented:
-#             entries_to_be_prevented.add(entry)
-#
-#     splittables = all_nonzero_entries - entries_to_be_prevented
-#     L = len(all_nonzero_entries)
-#     M = len(entries_to_be_prevented)
-#     x = M/L
-#
-#     test = random.sample(splittables, )
-#
-#
-#     """
-#     train = .75L
-#     test = .25L
-#
-#     prevent = M = xL
-#     train + M = .75L
-#     train = (.75-x)L
-#
-#
-#
-#     """
-#
-#
-#
-#     trainset={}
-#     testset={}
-#
-#
-#     return trainset, testset
+    if test_size > .1:
+        test_size = .1
+    all_nonzero_entries = set()
+    users_to_be_prevented = set()
+    papers_to_be_prevented = set()
+
+    for user in user_paper_dict:
+        if len(user_paper_dict[user]) < 2:
+            users_to_be_prevented.add(user)
+        for paper in user_paper_dict[user]:
+            all_nonzero_entries.add((user,paper))
+            cited_by_how_many = 0
+            for userrr in user_paper_dict:
+                if paper in user_paper_dict[userrr]:
+                    cited_by_how_many += 1
+            if cited_by_how_many < 2:
+                papers_to_be_prevented.add(paper)
+
+    entries_to_be_prevented = set()
+    for entry in all_nonzero_entries:
+        if entry[0] in users_to_be_prevented or entry[1] in papers_to_be_prevented:
+            entries_to_be_prevented.add(entry)
+
+    splittables = all_nonzero_entries - entries_to_be_prevented
+    splittable_dict = defaultdict(list)
+    for entry in splittables:
+        splittable_dict[entry[0]].append(entry[1])
+
+    L = len(all_nonzero_entries)
+    M = len(entries_to_be_prevented)
+    x = test_size/(1 - M/L)
+
+    testset = defaultdict(list)
+    for user in splittable_dict:        ######## Find this value!!!!
+        if len(splittable_dict[user]) > 2:  # data <= 2 are approx. 4%
+            rand_sample = random.sample(splittable_dict[user],round(x*len(splittable_dict[user])))
+            for paper in rand_sample:
+                testset[user].append(paper)
+    testset.default_factory = None
+
+    trainset = defaultdict(list)
+    for entry in splittables:
+        try:
+            papers = testset[entry[0]]
+            if entry[1] not in papers:
+                trainset[entry[0]].append(entry[1])
+        except KeyError:
+            trainset[entry[0]].append(entry[1])
+    for entry in entries_to_be_prevented:
+        trainset[entry[0]].append(entry[1])
+    trainset.default_factory = None
+
+    return trainset, testset
+
+
+def user_paper_train_test_split(user_paper_dict, test_size = .25):
+    if test_size > .25:
+        test_size = .25
+    all_nonzero_entries = set()
+    users_to_be_prevented = set()
+    papers_to_be_prevented = set()
+    entries_to_be_prevented = set()
+
+    for user in user_paper_dict:
+        if len(user_paper_dict[user]) < 2:
+            users_to_be_prevented.add(user)
+        for paper in user_paper_dict[user]:
+            all_nonzero_entries.add((user,paper,user_paper_dict[user][paper]))
+            cited_by_how_many = 0
+            for userrr in user_paper_dict:
+                if paper in user_paper_dict[userrr]:
+                    cited_by_how_many += 1
+            if cited_by_how_many < 2:
+                papers_to_be_prevented.add(paper)
+
+    for entry in all_nonzero_entries:
+        if entry[0] in users_to_be_prevented or entry[1] in papers_to_be_prevented:
+            entries_to_be_prevented.add(entry)
+
+    splittables = all_nonzero_entries - entries_to_be_prevented
+    splittable_dict = defaultdict(partial(defaultdict, int))
+    for entry in splittables:
+        splittable_dict[entry[0]][entry[1]] = entry[2]
+
+    L = len(all_nonzero_entries)
+    M = len(entries_to_be_prevented)
+    x = test_size/(1 - M/L)
+
+    testset = defaultdict(partial(defaultdict, int))
+    for user in splittable_dict:
+        if len(splittable_dict[user]) > 5:  # data <= 5 are approx. 2%
+            rand_sample = random.sample(splittable_dict[user].keys(),round(x*len(splittable_dict[user])))
+            for paper in rand_sample:
+                testset[user][paper] = splittable_dict[user][paper]
+    testset.default_factory = None
+    for key in testset:
+        testset[key].default_factory = None
+
+    trainset = defaultdict(partial(defaultdict, int))
+    for entry in splittables:
+        try:
+            testset[entry[0]]
+            try:
+                testset[entry[0]][entry[1]]
+            except KeyError:
+                trainset[entry[0]][entry[1]] = entry[2]
+        except KeyError:
+            trainset[entry[0]][entry[1]] = entry[2]
+    for entry in entries_to_be_prevented:
+        trainset[entry[0]][entry[1]] = entry[2]
+    trainset.default_factory = None
+    for key in trainset:
+        trainset[key].default_factory = None
+
+    return trainset, testset
 
 if __name__ == "__main__":
     create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
