@@ -287,7 +287,7 @@ def paper_paper_train_test_split(user_paper_dict, test_size = .11):
     testset = defaultdict(list)
     for user in splittable_dict:        ######## Find this value!!!!
         if len(splittable_dict[user]) > 1:  # data <= 2 are approx. 4%
-            rand_sample = random.sample(splittable_dict[user],np.ceil(x*len(splittable_dict[user])))
+            rand_sample = random.sample(splittable_dict[user], int(np.ceil(x*len(splittable_dict[user]))))
             for paper in rand_sample:
                 testset[user].append(paper)
     testset.default_factory = None
