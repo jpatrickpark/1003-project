@@ -24,9 +24,6 @@ def create_co_occurrence_matrix(paper_paper_dict):
         result[key].default_factory = None
     return result
 
-
-
-
 def delete_those_citing_none(data):
     freesouls = set()
     for user in data:
@@ -219,7 +216,7 @@ def create_surprise_user_paper_data(user_paper_dict, rating_scale):
     return data
 
 
-def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False,datadir='../dblp-ref'):
+def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False, datadir='../dblp-ref'):
     #Build a random subset of dictionary, where we only retain references to themselves
     mydict = create_paper_paper_dict(debug=debug,datadir=datadir)
     if size > len(mydict):
@@ -227,9 +224,10 @@ def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False,da
     random.seed(seed)
     random_dict = {k: list(mydict[k]) for k in random.sample(mydict.keys(),size)}
     for each in random_dict:
-        for ref in mydict[each]:
-            if ref not in random_dict:
-                random_dict[each].remove(ref)
+            for ref in mydict[each]:
+                if ref not in random_dict:
+                    random_dict[each].remove(ref)
+    delete_those_citing_none(random_dict)
     return random_dict
 
 def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, datadir='../dblp-ref'):
@@ -251,7 +249,6 @@ def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, data
 
 
 def paper_paper_train_test_split(user_paper_dict, test_size = .11):
-
     if test_size > .1:
         test_size = .1
     all_nonzero_entries = set()
@@ -287,7 +284,7 @@ def paper_paper_train_test_split(user_paper_dict, test_size = .11):
     testset = defaultdict(list)
     for user in splittable_dict:        ######## Find this value!!!!
         if len(splittable_dict[user]) > 1:  # data <= 2 are approx. 4%
-            rand_sample = random.sample(splittable_dict[user],np.ceil(x*len(splittable_dict[user])))
+            rand_sample = random.sample(splittable_dict[user],int(np.ceil(x*len(splittable_dict[user]))))
             for paper in rand_sample:
                 testset[user].append(paper)
     testset.default_factory = None
