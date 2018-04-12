@@ -10,6 +10,7 @@ from .preprocess import create_surprise_paper_paper_data
 from .preprocess import normalize_user_paper_data
 from .preprocess import create_surprise_user_paper_data
 from .preprocess import create_random_subset_paper_paper_data
+from .preprocess import paper_paper_train_test_split
 
 from .evaluation import get_top_n,precision_recall_at_k
 from .utils      import dotProduct,ListToDict
