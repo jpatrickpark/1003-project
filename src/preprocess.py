@@ -13,6 +13,8 @@ from collections import defaultdict
 from functools import partial
 from itertools import combinations
 
+from utils import invert_dict
+
 def create_co_occurrence_matrix(paper_paper_dict):
     result = defaultdict(partial(defaultdict, int))
     for key, value in paper_paper_dict.items():
@@ -245,9 +247,6 @@ def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, data
     #             random_dict[each].remove(ref)
     return random_dict
 
-
-
-
 def paper_paper_train_test_split(user_paper_dict, test_size = .11):
     if test_size > .1:
         test_size = .1
@@ -365,6 +364,29 @@ def user_paper_train_test_split(user_paper_dict, test_size = .25):
         trainset[key].default_factory = None
 
     return trainset, testset
+
+def create_train_test_dic(total_dic):
+    testdic  = defaultdict(list)
+    traindic = defaultdict(list)
+
+    invert_total_dic = invert_dict(total_dic)
+    for user in total_dic:
+        if len(total_dic[user]) < 2:
+            traindic[user] = total_dic[user]
+        else:
+            i = 0
+            for ref in total_dic[user]:
+                i = i+1
+                if i < 2:
+                    traindic[user].append(ref)
+                else:
+                    if len(invert_total_dic[ref]) < 2:
+                        traindic[user].append(ref)
+                    else:
+                        invert_total_dic[ref].remove(user)
+                        testdic[user].append(ref)
+
+    return traindic, testdic
 
 if __name__ == "__main__":
     create_surprise_paper_paper_data(create_random_subset_paper_paper_data(100000,debug=True),True)
