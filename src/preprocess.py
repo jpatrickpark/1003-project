@@ -232,20 +232,44 @@ def create_random_subset_paper_paper_data(size=100000, seed=1003, debug=False, d
     delete_those_citing_none(random_dict)
     return random_dict
 
-def create_random_subset_user_paper_data(size=5000, seed=1003, debug=False, datadir='../dblp-ref'):
+def create_random_subset_user_paper_data(size=3000, seed=1003, debug=False, datadir='../dblp-ref'):
     #Build a random subset of dictionary, where we only retain references to themselves
     mydict = create_user_paper_dict(debug=debug,datadir=datadir)
     if size > len(mydict):
         size = len(mydict)
     random.seed(seed)
     random_dict = {k: mydict[k] for k in random.sample(mydict.keys(),size)}
-
+    
+    # get a set of all papers.
+    all_papers = set()
+    for user in random_dict:
+        for paper in random_dict[user].keys():
+            all_papers.add(paper)
+            
+    # take a random sample of papers to keep
+    papers_to_keep = random.sample(all_papers,2*size)
+    
+    
+    
+    # only keep those papers
+    result = defaultdict(partial(defaultdict, int))
+    for user in random_dict:
+        for paper in random_dict[user]:
+            if paper in papers_to_keep:
+                result[user][paper] = random_dict[user][paper]
+                
+   
+    result.default_factory = None
+    for key in result:
+        result[key].default_factory = None
+        
+        
     # DYK: I believe for user_paper_dict, we don't need to delete these.
     # for user in random_dict:
     #     for paper in mydict[user]:
     #         if ref not in random_dict:
     #             random_dict[each].remove(ref)
-    return random_dict
+    return result
 
 def paper_paper_train_test_split(user_paper_dict, test_size = .11):
     if test_size > .1:
